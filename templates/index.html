@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Generate n x n Square</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h2>Generate n x n Square</h2>
+    <form method="post">
+        <label>Enter a number between 5 and 9:</label>
+        <input type="number" name="size" min="5" max="9" required>
+        <input type="submit" value="Generate Square">
+    </form>
+
+    <h3>{{ n }} x {{ n }} Square:</h3>
+    <p>Click on a cell to set start (green), end (red), and blocks (gray).</p>
+    <table>
+        {% for i in range(n) %}
+        <tr>
+            {% for j in range(n) %}
+            <td onclick="setCell(this, {{ i }}, {{ j }})">{{ i*n + j + 1 }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+
+    <button type="button" onclick="submitGrid()">顯示策略與價值</button>
+
+    <div id="results"></div>
+
+    <!-- ✅ 修正點：將 script 放在 body 最下方，確保函數定義完成 -->
+    <script>
+        let clickCount = 0;
+        let start = null;
+        let end = null;
+        let blocks = [];
+        let n = {{ n }};
+
+        function setCell(cell, i, j) {
+            if (cell.classList.contains("start") || cell.classList.contains("end") || cell.classList.contains("block")) {
+                return;
+            }
+            if (clickCount === 0) {
+                cell.classList.add("start");
+                start = [i, j];
+                clickCount++;
+            } else if (clickCount === 1) {
+                cell.classList.add("end");
+                end = [i, j];
+                clickCount++;
+            } else {
+                if (blocks.length >= n - 2) {
+                    alert("最多只能設置 " + (n - 2) + " 個障礙格！");
+                    return;
+                }
+                cell.classList.add("block");
+                blocks.push([i, j]);
+                clickCount++;
+            }
+        }
+
+        async function submitGrid() {
+            if (!start || !end) {
+                alert("請先設定起點與終點！");
+                return;
+            }
+
+            const response = await fetch("/show_policy", {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ start, end, blocks })
+            });
+
+            const data = await response.json();
+            document.getElementById("results").innerHTML = `
+                <h3>Policy Matrix</h3>
+                <img src="data:image/png;base64,${data.policy_img}" />
+                <h3>Value Matrix</h3>
+                <img src="data:image/png;base64,${data.value_img}" />
+            `;
+        }
+    </script>
+</body>
+</html>

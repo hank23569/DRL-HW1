@@ -1,0 +1,24 @@
+table {
+    border-collapse: collapse;
+}
+td {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #333;
+    text-align: center;
+    vertical-align: middle;
+    font-weight: bold;
+    cursor: pointer;
+}
+.start {
+    background-color: green;
+    color: white;
+}
+.end {
+    background-color: red;
+    color: white;
+}
+.block {
+    background-color: gray;
+    color: white;
+}
